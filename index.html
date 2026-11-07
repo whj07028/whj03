@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>秋招投递看板</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+    body {
+      padding: 24px;
+      background-color: #f6f8fa;
+    }
+    h1 {
+      margin-bottom: 8px;
+    }
+    .tip {
+      color: #666;
+      margin-bottom: 12px;
+    }
+    .jump-btn {
+      display: inline-block;
+      padding: 8px 14px;
+      background: #2563eb;
+      color: white;
+      border-radius: 8px;
+      text-decoration: none;
+      margin-bottom: 20px;
+    }
+    .board {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    .card h3 {
+      margin-bottom: 6px;
+    }
+    .status {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      color: white;
+      margin: 6px 0;
+    }
+    .status.待投 { background: #94a3b8; }
+    .status.笔试 { background: #3b82f6; }
+    .status.面试 { background: #f59e0b; }
+    .status.offer { background: #10b981; }
+    .status.挂 { background: #ef4444; }
+    .remark {
+      margin-top: 8px;
+      color: #555;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <h1>秋招投递看板</h1>
+  <div class="tip">数据来自Google表格，每5秒自动刷新；请前往谷歌表格新增/修改投递记录</div>
+  <a class="jump-btn" id="editBtn" target="_blank">前往谷歌表格编辑</a>
+  <div class="board" id="board"></div>
+
+  <script>
+    // ========== 填入你的信息 ==========
+    const SHEETDB_API = "https://sheetdb.io/api/v1/abnf0u7zz6ap5";
+    const GOOGLE_SHEET_EDIT_URL = "填入你的谷歌表格编辑链接";
+    // =================================
+
+    document.getElementById("editBtn").href = GOOGLE_SHEET_EDIT_URL;
+
+    async function loadData() {
+      const boardDom = document.getElementById("board");
+      try {
+        const res = await fetch(SHEETDB_API);
+        if (!res.ok) throw new Error("API请求异常");
+        const dataArr = await res.json();
+        boardDom.innerHTML = "";
+        dataArr.forEach(item => {
+          const div = document.createElement("div");
+          div.className = "card";
+          div.innerHTML = `
+            <h3>${item.company || ""}</h3>
+            <div>${item.post || ""}</div>
+            <div>${item.apply_time || ""}</div>
+            <span class="status ${item.status || ""}">${item.status || ""}</span>
+            <div class="remark">${item.remark || ""}</div>
+          `;
+          boardDom.appendChild(div);
+        });
+      } catch (err) {
+        console.error(err);
+        boardDom.innerText = "⚠️ 数据获取失败，请检查：1.谷歌表格共享权限；2.SheetDB后台Read权限、CORS设置；3.网络环境";
+      }
+    }
+
+    loadData();
+    setInterval(loadData, 5000);
+  </script>
+</body>
+</html>
